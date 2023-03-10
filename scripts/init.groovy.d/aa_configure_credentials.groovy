@@ -4,15 +4,16 @@ println '### JENKINS AUTOCONFIG: CREDENTIALS ###'
 /**
   * Check if Jenkins should not configure itself and skip.
   */
+
 Boolean skipConfiguringJenkins() {
     !(System.env?.environment in ['dev', 'staging']) ||
         (new File("${Jenkins.instance.rootDir}/autoConfigComplete").exists())
 }
-
 if(skipConfiguringJenkins()) {
     println 'Skipping Jenkins auto-configuration'
     return
 }
+
 
 /**
   * From this point onward Jenkins should configure itself.
@@ -30,6 +31,17 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse
 
+import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey
+import com.cloudbees.plugins.credentials.CredentialsMatchers
+import com.cloudbees.plugins.credentials.CredentialsProvider
+import com.cloudbees.plugins.credentials.CredentialsScope
+import com.cloudbees.plugins.credentials.SystemCredentialsProvider
+import com.cloudbees.plugins.credentials.domains.Domain
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
+import hudson.security.ACL
+import hudson.util.Secret
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
+
 Map getSecret(Map options) {
     String secretName = options.secretId
     Region region = Region.of(options.region)
@@ -46,7 +58,8 @@ Map getSecret(Map options) {
     yaml.load(secret)
 }
 
-Map credentials = getSecret(region: 'us-east-1', secretId: "jenkins-ng/configuration/credentials/${System.env?.environment}").credentials
+// list of credential maps
+credentials = getSecret(region: 'us-east-1', secretId: "jenkins-ng/configuration/credentials/dev").credentials
 
 /*
    Copyright (c) 2015-2020 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-shared
@@ -98,16 +111,7 @@ private key contents (do not indent it)
          ]
      ]
  */
-import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey
-import com.cloudbees.plugins.credentials.CredentialsMatchers
-import com.cloudbees.plugins.credentials.CredentialsProvider
-import com.cloudbees.plugins.credentials.CredentialsScope
-import com.cloudbees.plugins.credentials.SystemCredentialsProvider
-import com.cloudbees.plugins.credentials.domains.Domain
-import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
-import hudson.security.ACL
-import hudson.util.Secret
-import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
+
 
 /**
   These methods are necessary for dynamic class loading.  This way, we can
@@ -350,9 +354,10 @@ if(!(credentials instanceof List<Map>)) {
     throw new Exception('Error: credentials must be a list of maps.')
 }
 
-iterate through credentials and add them to Jenkins
+
+// iterate through credentials and add them to Jenkins
 credentials.each {
-    if("set${(it['credential_type'])?:'empty credential_type'}".toString() in this.metaClass.methods*.name.toSet()) {
+    if("set${(it['credential_type'])?:'empty credential_type'}".toString() in (this.metaClass.methods*.name.toSet() - ['getSecret', 'skipConfiguringJenkins'])) {
         "set${it['credential_type']}"(it)
     }
     else {
