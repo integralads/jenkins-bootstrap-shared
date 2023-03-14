@@ -6,7 +6,7 @@ println '### JENKINS AUTOCONFIG: GITHUB OAUTH ###'
   */
 
 Boolean skipConfiguringJenkins() {
-    !(System.env?.environment in ['dev', 'staging']) ||
+    !(System.env?.ENVIRONMENT in ['dev', 'staging']) ||
         (new File("${Jenkins.instance.rootDir}/autoConfigComplete").exists())
 }
 if(skipConfiguringJenkins()) {
