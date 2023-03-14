@@ -6,7 +6,7 @@ println '### JENKINS AUTOCONFIG: CREDENTIALS ###'
   */
 
 Boolean skipConfiguringJenkins() {
-    !(System.env?.environment in ['dev', 'staging']) ||
+    !(System.env?.ENVIRONMENT in ['dev', 'staging']) ||
         (new File("${Jenkins.instance.rootDir}/autoConfigComplete").exists())
 }
 if(skipConfiguringJenkins()) {
@@ -58,8 +58,10 @@ Map getSecret(Map options) {
     yaml.load(secret)
 }
 
+// get environment vars passed to service container
+String ENVIRONMENT = System.env?.ENVIRONMENT
 // list of credential maps
-credentials = getSecret(region: 'us-east-1', secretId: "jenkins-ng/configuration/credentials/dev").credentials
+credentials = getSecret(region: 'us-east-1', secretId: "jenkins-ng/configuration/credentials/${ENVIRONMENT}").credentials
 
 /*
    Copyright (c) 2015-2020 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-shared
