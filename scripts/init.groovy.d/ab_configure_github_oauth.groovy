@@ -50,10 +50,11 @@ Map getSecret(Map options) {
     def yaml = new Yaml(new SafeConstructor(loaderOptions))
     yaml.load(secret)
 }
+String ENVIRONMENT = System.env?.ENVIRONMENT
+String HALF = System.env?.HALF
 
 // list of github realm maps
-// github_realm = getSecret(region: 'us-east-1', secretId: "jenkins-ng/oauth/github")."${ENVIRONMENT}"."${HALF}"
-github_realm = getSecret(region: 'us-east-1', secretId: "jenkins-ng/oauth/github").dev.green.collectEntries()
+github_realm = getSecret(region: 'us-east-1', secretId: "jenkins-ng/oauth/github")."${ENVIRONMENT}"."${HALF}".collectEntries()
 
 /*
    Copyright (c) 2015-2020 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-jervis
