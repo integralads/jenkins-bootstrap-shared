@@ -41,10 +41,7 @@ if(skipConfiguringJenkins()) {
 /**
   * From this point onward Jenkins should configure itself.
   */
-import jenkins.*
-import jenkins.model.*
-import hudson.*
-import hudson.model.*
+import jenkins.model.Jenkins
 
 import org.yaml.snakeyaml.LoaderOptions
 import org.yaml.snakeyaml.Yaml
