@@ -1,3 +1,27 @@
+/*
+   Copyright (c) 2015-2020 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-jervis
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+   */
+
+/*
+   Configures GitHub as the security realm from the GitHub Authentication
+   Plugin (github-oauth).
+
+   github-oauth 0.29
+ */
+
+
 // output init hook stage
 println '### JENKINS AUTOCONFIG: GITHUB OAUTH ###'
 
@@ -13,7 +37,6 @@ if(skipConfiguringJenkins()) {
     println 'Skipping Jenkins auto-configuration'
     return
 }
-
 
 /**
   * From this point onward Jenkins should configure itself.
@@ -47,7 +70,7 @@ Map getSecret(Map options) {
     GetSecretValueResponse getSecretValueResponse = client.getSecretValue(getSecretValueRequest)
     String secret = getSecretValueResponse.secretString()
     LoaderOptions loaderOptions = new LoaderOptions()
-    def yaml = new Yaml(new SafeConstructor(loaderOptions))
+    Yaml yaml = new Yaml(new SafeConstructor(loaderOptions))
     yaml.load(secret)
 }
 String ENVIRONMENT = System.env?.ENVIRONMENT
@@ -56,28 +79,7 @@ String HALF = System.env?.HALF
 // list of github realm maps
 github_realm = getSecret(region: 'us-east-1', secretId: "jenkins-ng/oauth/github")."${ENVIRONMENT}"."${HALF}".collectEntries()
 
-/*
-   Copyright (c) 2015-2020 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-jervis
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-   */
-
-/*
-   Configures GitHub as the security realm from the GitHub Authentication
-   Plugin (github-oauth).
-
-   github-oauth 0.29
- */
 
 if(!binding.hasVariable('github_realm')) {
     github_realm = [:]
