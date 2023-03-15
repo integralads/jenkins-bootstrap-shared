@@ -1,3 +1,55 @@
+/*
+   Copyright (c) 2015-2020 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-shared
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+   */
+/*
+   Configure multiple types of credentials.  Set the `credentials` binding with
+   a list of maps containing supported credential types.
+
+   Supported credential types include:
+     - BasicSSHUserPrivateKey
+     - StringCredentialsImpl
+   Example binding:
+
+     credentials = [
+         [
+             'credential_type': 'BasicSSHUserPrivateKey',
+             'credentials_id': 'some-credential-id',
+             'description': 'A description of this credential',
+             'user': 'some user',
+             'key_passwd': 'secret phrase',
+             'key': '''
+private key contents (do not indent it)
+             '''.trim()
+         ],
+         [
+             'credential_type': 'StringCredentialsImpl',
+             'credentials_id': 'some-credential-id',
+             'description': 'A description of this credential',
+             'secret': 'super secret text'
+         ],
+         [
+             'credential_type': 'UsernamePasswordCredentialsImpl',
+             'credentials_id': 'some-credential-id',
+             'description': 'A description of this credential',
+             'user': 'some user',
+             'password': 'secret phrase'
+         ]
+     ]
+ */
+
+
 // output init hook stage
 println '### JENKINS AUTOCONFIG: CREDENTIALS ###'
 
@@ -54,7 +106,7 @@ Map getSecret(Map options) {
     GetSecretValueResponse getSecretValueResponse = client.getSecretValue(getSecretValueRequest)
     String secret = getSecretValueResponse.secretString()
     LoaderOptions loaderOptions = new LoaderOptions()
-    def yaml = new Yaml(new SafeConstructor(loaderOptions))
+    Yaml yaml = new Yaml(new SafeConstructor(loaderOptions))
     yaml.load(secret)
 }
 
@@ -62,57 +114,6 @@ Map getSecret(Map options) {
 String ENVIRONMENT = System.env?.ENVIRONMENT
 // list of credential maps
 credentials = getSecret(region: 'us-east-1', secretId: "jenkins-ng/configuration/credentials/${ENVIRONMENT}").credentials
-
-/*
-   Copyright (c) 2015-2020 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-shared
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-   */
-/*
-   Configure multiple types of credentials.  Set the `credentials` binding with
-   a list of maps containing supported credential types.
-
-   Supported credential types include:
-     - BasicSSHUserPrivateKey
-     - StringCredentialsImpl
-   Example binding:
-
-     credentials = [
-         [
-             'credential_type': 'BasicSSHUserPrivateKey',
-             'credentials_id': 'some-credential-id',
-             'description': 'A description of this credential',
-             'user': 'some user',
-             'key_passwd': 'secret phrase',
-             'key': '''
-private key contents (do not indent it)
-             '''.trim()
-         ],
-         [
-             'credential_type': 'StringCredentialsImpl',
-             'credentials_id': 'some-credential-id',
-             'description': 'A description of this credential',
-             'secret': 'super secret text'
-         ],
-         [
-             'credential_type': 'UsernamePasswordCredentialsImpl',
-             'credentials_id': 'some-credential-id',
-             'description': 'A description of this credential',
-             'user': 'some user',
-             'password': 'secret phrase'
-         ]
-     ]
- */
 
 
 /**

@@ -23,5 +23,5 @@ void setConfigurationComplete() {
     new File("${Jenkins.instance.rootDir}/autoConfigComplete").withWriter { w -> w << '' }
 }
 
-println 'We are now configuring Jenkins'
+println 'Jenkins autoconfiguration complete, writing flag file...'
 setConfigurationComplete()
