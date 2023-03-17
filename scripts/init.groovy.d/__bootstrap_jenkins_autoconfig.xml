@@ -18,7 +18,7 @@
         <hudson.model.PasswordParameterDefinition>
           <name>JENKINS_PASSWORD</name>
           <description>Administrators github Personal Access Token with scopes (user:email, repo, read:org)</description>
-          <defaultValue>{AQAAABAAAAAQX7Wzhnx6buGoUnsAf6wg/f+9Uso4jsw9CtEiUokyMgM=}</defaultValue>
+          <defaultValue>{AQAAABAAAABAIhhGLd2ww/D30Fh5V0Tb02PKJiOvpaEnU0Cu3wzxo7Z0JzxLoN8uoRMcW12k16ppPP5KVh86hAJkmv/DkLVHX6fhSkHQMWKMZcYpNYtcx+8=}</defaultValue>
         </hudson.model.PasswordParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>REMOTE_JENKINS</name>
@@ -63,7 +63,7 @@
   </scm>
   <assignedNode>master</assignedNode>
   <canRoam>false</canRoam>
-  <disabled>false</disabled>
+  <disabled>true</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers/>
@@ -75,6 +75,20 @@
       <configuredLocalRules/>
     </hudson.tasks.Shell>
   </builders>
-  <publishers/>
+  <publishers>
+    <org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder plugin="groovy-postbuild@2.5">
+      <script plugin="script-security@1.75">
+        <script>import jenkins.model.Jenkins
+
+println &quot;Disabling first boot jenkins auto-bootstrap job&quot;
+
+jenkins = Jenkins.instance
+Jenkins.instance.getItem(&quot;__bootstrap_jenkins_autoconfig&quot;).disable()</script>
+        <sandbox>false</sandbox>
+      </script>
+      <behavior>0</behavior>
+      <runForMatrixParent>false</runForMatrixParent>
+    </org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder>
+  </publishers>
   <buildWrappers/>
 </project>
