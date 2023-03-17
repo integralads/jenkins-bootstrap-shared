@@ -16,7 +16,6 @@
 #      export JENKINS_CALL_ARGS="-m POST -v --data-string script= http://localhost:8080/scriptText --data-file"
 #      jenkins-call-url ./script.groovy
 
-from http.client import HTTPSConnection
 import argparse
 import base64
 import json
@@ -25,6 +24,10 @@ import re
 import ssl
 import sys
 import time
+
+from http.client import HTTPSConnection
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 try:
     import socket
@@ -218,12 +221,12 @@ if args.print_curl_init:
     else:
         printCurl(settings)
 
-### POST-PROXY SETTINGS using urllib and urllib2
+### POST-PROXY SETTINGS using python3 urllib
 # See: https://stackoverflow.com/questions/2317849/how-can-i-use-a-socks-4-5-proxy-with-urllib2
-# Note: SOCKS proxy must always be configured before importing urllib and urllib2
+# Note: SOCKS proxy must always be configured before importing urllib
+# Note: urllib and urllib2 have been combined into one library for python3
 
 import urllib
-import urllib2
 
 def getUrl(url, headers, data=None, method='GET'):
     if args.verbosity >= 3:
@@ -239,15 +242,15 @@ def getUrl(url, headers, data=None, method='GET'):
                 context.load_verify_locations(cafile=args.pinned_cert)
             else:
                 context.load_default_certs()
-            req = urllib.request.Request(url, data=data, headers=headers)
+            req = Request(url, data=data, headers=headers)
             if method != 'GET':
                 req.get_method = lambda: method
-            urlconn = urllib.request.urlopen(req, context=context)
+            urlconn = urlopen(req, context=context)
         else:
-            req = urllib.request.Request(url=url, data=data, headers=headers)
+            req = Request(url=url, data=data, headers=headers)
             if method != 'GET':
                 req.get_method = lambda: method
-            urlconn = urllib.request.urlopen(req)
+            urlconn = urlopen(req)
         responseString = urlconn.read().decode()
         if url.endswith('crumbIssuer/api/json'):
             if 'Cookie' in headers:
@@ -258,7 +261,7 @@ def getUrl(url, headers, data=None, method='GET'):
                     print_err('Set a new session cookie ' + headers['Cookie'])
         responseCode = urlconn.getcode()
         urlconn.close()
-    except urllib.error.HTTPError as e:
+    except HTTPError as e:
         responseCode = e.code
         responseErrorReason = e.reason
     return (responseCode, responseString, responseErrorReason)
