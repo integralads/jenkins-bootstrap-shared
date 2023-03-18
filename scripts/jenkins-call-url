@@ -98,27 +98,27 @@ def printCurl(settings, url=trim_url_slash(args.jenkins_web)):
     curl='curl'
     headers = settings['headers']
     if 'socks_proxy' in settings and len(settings['socks_proxy']) > 0:
-        curl += ' --proxy socks5h://%s' % settings['socks_proxy']
+        curl += f" --proxy socks5h://{settings['socks_proxy']}"
     if args.http_method != 'GET' and url != trim_url_slash(args.jenkins_web):
         if args.http_method == 'HEAD':
             curl += " --head"
         else:
-            curl += " -X%s" % args.http_method
+            curl += f" -X{args.http_method}"
     if len(args.http_data_files) > 0 and url != trim_url_slash(args.jenkins_web):
         curl += ' --data-urlencode "'
         if len(args.http_data_strings) > 0:
             for s in args.http_data_strings:
-                curl += '%s' % s
+                curl += "{s}"
         for f in args.http_data_files:
             if f == '-':
                 curl += sys.stdin.read()
             else:
-                curl += '$(<%s)' % f
+                curl += f"$(<{f})"
         curl += '"'
     if args.pinned_cert:
-        curl += ' --cacert %s' % args.pinned_cert
+        curl += f" --cacert {args.pinned_cert}"
     for k,v in headers.items():
-        curl += " -H '%s:%s'" % (k, v)
+        curl += f" -H '{k}:{v}'"
     print(curl, url)
     sys.exit(1)
 
@@ -127,7 +127,7 @@ def getHost(url):
 
 # print to stderr
 def print_err(message=''):
-    sys.stderr.write(message + '\n')
+    sys.stderr.write(f"{message}\n")
     sys.stderr.flush()
 
 # validate http method
@@ -162,7 +162,7 @@ if args.auto_jenkins_web:
     headers['Host'] = getHost(trim_url_slash(args.JENKINS_URL))
 
 # always set the User-Agent
-headers['User-Agent'] = 'jenkins-call-url %s' % version
+headers['User-Agent'] = f"jenkins-call-url {version}"
 
 if 'Authorization' in headers:
     if args.verbosity >= 2:
@@ -170,9 +170,9 @@ if 'Authorization' in headers:
 else:
     if username is not None:
         if args.verbosity >= 2:
-            print_err("Logging in as user %s." % username)
+            print_err(f"Logging in as user {username}.")
         # encode the username and password strings as bytes before base64 encoding them
-        credentials = ("%s:%s" % (username, password)).encode('ascii')
+        credentials = (f"{username}:{password}").encode('ascii')
         headers['Authorization'] = b"Basic " + base64.b64encode(credentials)
 
 # configure SOCKS5 proxy
@@ -186,13 +186,13 @@ else:
     proxy = ''
 
 if proxy and not re.match(r'[-0-9a-zA-Z.]+:[0-9]+', proxy):
-    print_err("Invalid --proxy specified: %s" % args.socks_proxy)
+    print_err(f"Invalid --proxy specified: {args.socks_proxy}")
     parser.print_help()
     sys.exit(1)
 
 if proxy:
     if args.verbosity >= 1:
-        print_err("Using SOCKS5 proxy: %s" % proxy)
+        print_err(f"Using SOCKS5 proxy: {proxy}")
     settings['socks_proxy'] = proxy
     proxy_host = proxy.split(':')[0]
     proxy_port = int(proxy.split(':')[1])
@@ -210,9 +210,9 @@ if args.print_curl_crumb:
     settings['headers'] = headers
     args.http_method = 'POST'
     if args.auto_jenkins_web:
-        printCurl(settings, args.JENKINS_URL + '/crumbIssuer/api/json?pretty=true')
+        printCurl(settings, f"{args.JENKINS_URL}/crumbIssuer/api/json?pretty=true")
     else:
-        printCurl(settings, args.jenkins_web + '/crumbIssuer/api/json?pretty=true')
+        printCurl(settings, f"{args.jenkins_web}/crumbIssuer/api/json?pretty=true")
 
 if args.print_curl_init:
     settings['headers'] = headers
@@ -230,7 +230,7 @@ import urllib
 
 def getUrl(url, headers, data=None, method='GET'):
     if args.verbosity >= 3:
-        print_err('%s %s' % (method, url))
+        print_err(f"{method} {url}")
     responseCode = -1
     responseString = ""
     responseErrorReason = None
@@ -271,7 +271,7 @@ def getJSONUrl(url, headers):
         url = url + '/api/json'
     code, response, reason = getUrl(url, headers)
     if reason:
-        print_err("HTTP ERROR %s: %s\n%s" % (str(code), reason, url))
+        print_err(f"HTTP ERROR {code}: {reason}\n{url}")
         sys.exit(1)
     # Python 3 expects response var to be in bytes
     # need to be decode to a string using the decode() method with utf-8 encoding
@@ -332,7 +332,7 @@ if args.print_curl:
     printCurl(settings, url=jenkins_url)
 
 if args.verbosity >= 1:
-    print_err("%s %s" % (args.http_method, jenkins_url))
+    print_err(f"{args.http_method} {jenkins_url}")
 
 # prepare the HTTP message body payload
 data=None
@@ -350,7 +350,7 @@ if len(args.http_data_files) > 0:
 # Call the URL
 code, response, reason = getUrl(jenkins_url, headers, method=args.http_method, data=data)
 if args.verbosity >= 1:
-    print_err("Response (HTTP %s):" % str(code))
+    print_err(f"Response (HTTP {code}):")
 # print without newline at end
 if len(response) > 0:
     if args.output == '-':
