@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-#Created by Sam Gleske
-#Copyright 2017 Sam Gleske
-#LICENSE MIT
-#Source: https://github.com/samrocketman/home/blob/master/bin/jenkins-call-url
-#The above comment block must remain intact for usage.
+# Created by Sam Gleske
+# Copyright 2017 Sam Gleske
+# LICENSE MIT
+# Source: https://github.com/samrocketman/home/blob/master/bin/jenkins-call-url
+# The above comment block must remain intact for usage.
 
-#DESCRIPTION:
+# DESCRIPTION:
 #  Reads Jenkins API and can make calls to arbitrary Jenkins URL endpoints.
-#EXAMPLES:
+# EXAMPLES:
 #  Execute script console script.
 #      jenkins-call-url -m POST --data-string "script=println 'hello world'" http://localhost:8080/scriptText
 #  Execute a whole Groovy script on script console.
@@ -23,9 +23,7 @@ import os
 import re
 import ssl
 import sys
-import time
 
-from http.client import HTTPSConnection
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
@@ -63,7 +61,7 @@ examples:
       export JENKINS_CALL_ARGS="-m POST -v --data-string script= http://localhost:8080/scriptText --data-file"
       jenkins-call-url ./script.groovy
 """, formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument('--version', action='version', version="%(prog)s "+version)
+parser.add_argument('--version', action='version', version="%(prog)s " + version)
 parser.add_argument('--curl', action='store_true', dest='print_curl', help='Print a fully formatted curl command which includes all options for debugging and exit.')
 parser.add_argument('--curl-init', action='store_true', dest='print_curl_init', help='Print a formatted initial curl command for debugging and exit.')
 parser.add_argument('--curl-crumb', action='store_true', dest='print_curl_crumb', help='Print a formatted curl command for getting CSRF crumb for debugging and exit.')
@@ -91,11 +89,13 @@ if len(additional_args) > 0:
         sys.argv = [sys.argv[0]] + additional_args.strip().split() + sys.argv[1:]
 args = parser.parse_args()
 
+
 def trim_url_slash(url):
     return url[:-1] if url.endswith('/') else url
 
+
 def printCurl(settings, url=trim_url_slash(args.jenkins_web)):
-    curl='curl'
+    curl = 'curl'
     headers = settings['headers']
     if 'socks_proxy' in settings and len(settings['socks_proxy']) > 0:
         curl += f" --proxy socks5h://{settings['socks_proxy']}"
@@ -117,18 +117,21 @@ def printCurl(settings, url=trim_url_slash(args.jenkins_web)):
         curl += '"'
     if args.pinned_cert:
         curl += f" --cacert {args.pinned_cert}"
-    for k,v in headers.items():
+    for k, v in headers.items():
         curl += f" -H '{k}:{v}'"
     print(curl, url)
     sys.exit(1)
 
+
 def getHost(url):
     return url.split('/')[2].split(':')[0]
+
 
 # print to stderr
 def print_err(message=''):
     sys.stderr.write(f"{message}\n")
     sys.stderr.flush()
+
 
 # validate http method
 if args.http_method not in ['GET', 'HEAD', 'POST']:
@@ -221,12 +224,13 @@ if args.print_curl_init:
     else:
         printCurl(settings)
 
-### POST-PROXY SETTINGS using python3 urllib
+# POST-PROXY SETTINGS using python3 urllib
 # See: https://stackoverflow.com/questions/2317849/how-can-i-use-a-socks-4-5-proxy-with-urllib2
 # Note: SOCKS proxy must always be configured before importing urllib
 # Note: urllib and urllib2 have been combined into one library for python3
 
 import urllib
+
 
 def getUrl(url, headers, data=None, method='GET'):
     if args.verbosity >= 3:
@@ -236,7 +240,7 @@ def getUrl(url, headers, data=None, method='GET'):
     responseErrorReason = None
     try:
         if url.startswith('https'):
-            #https://docs.python.org/3/library/ssl.html#ssl-security
+            # https://docs.python.org/3/library/ssl.html#ssl-security
             context = ssl.create_default_context()
             if args.pinned_cert:
                 context.load_verify_locations(cafile=args.pinned_cert)
@@ -266,6 +270,7 @@ def getUrl(url, headers, data=None, method='GET'):
         responseErrorReason = e.reason
     return (responseCode, responseString, responseErrorReason)
 
+
 def getJSONUrl(url, headers):
     if not url.endswith('/api/json'):
         url = url + '/api/json'
@@ -279,8 +284,9 @@ def getJSONUrl(url, headers):
     return parsed
 
 #
-### END POST-PROXY SETTINGS using urllib and urllib2
+# END POST-PROXY SETTINGS using urllib and urllib2
 #
+
 
 # complete arguments for use
 jenkins_url = trim_url_slash(args.JENKINS_URL)
@@ -335,7 +341,7 @@ if args.verbosity >= 1:
     print_err(f"{args.http_method} {jenkins_url}")
 
 # prepare the HTTP message body payload
-data=None
+data = None
 if len(args.http_data_files) > 0:
     data = ""
     for string in args.http_data_strings:
@@ -369,13 +375,13 @@ if len(args.save_headers_file) > 0:
         print_err("Saving HTTP headers to file.")
     with open(args.save_headers_file, 'w') as f:
         settings['headers'] = headers
-        json.dump(settings,f)
+        json.dump(settings, f)
     # credentials are stored in the headers file so don't want just anybody to read it
     os.chmod(args.save_headers_file, 0o600)
 
 STATUS = 0
 if reason:
-    STATUS=1
+    STATUS = 1
     if args.verbosity >= 1:
         print_err(reason)
 sys.exit(STATUS)
