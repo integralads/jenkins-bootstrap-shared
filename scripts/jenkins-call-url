@@ -239,6 +239,10 @@ def getUrl(url, headers, data=None, method='GET'):
     responseString = ""
     responseErrorReason = None
     try:
+        # Convert the string data to bytes if it's not None
+        if data is not None:
+            data = data.encode('utf-8')
+
         if url.startswith('https'):
             # https://docs.python.org/3/library/ssl.html#ssl-security
             context = ssl.create_default_context()
