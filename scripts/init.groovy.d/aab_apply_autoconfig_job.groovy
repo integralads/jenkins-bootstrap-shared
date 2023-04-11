@@ -19,7 +19,8 @@ if(skipConfiguringJenkins()) {
   */
 
 import jenkins.model.Jenkins
-import groovy.xml.*
+import groovy.xml.XMLParser
+import groovy.xml.XMLSlurper
 import org.jenkinsci.plugins.workflow.job.WorkflowJob
 
 void addInitialBootstrapJob(){
