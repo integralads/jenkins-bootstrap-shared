@@ -13,16 +13,28 @@
    See the License for the specific language governing permissions and
    limitations under the License.
    */
-
 /*
-   Prints out plugins that need to be downloaded from the current instance.
+   Install plugins through the update center.
  */
-
-import groovy.json.JsonSlurper
-def json = new JsonSlurper()
-def addr="http://jenkins-updates.cloudbees.com/update-center.json"
-def updateCenterPlugins=json.parseText((new URL(addr).newReader().readLines())[1..-1].join(''))["plugins"]
-Jenkins.instance.pluginManager.plugins.each {
-    def plugin=it.getShortName()
-    println "getplugins 'org.jenkins-ci.plugins:${updateCenterPlugins[plugin]["name"]}:${updateCenterPlugins[plugin]["version"]}'"
+if(!binding.hasVariable('plugins')) {
+    throw new Exception('plugins is missing from the binding.')
 }
+
+if(!(plugins instanceof String)) {
+    throw new Exception('plugins must defined as a String.')
+}
+
+List minimal_plugins = plugins.tokenize('\n')*.trim().sort().unique()
+
+
+Jenkins.instance.pluginManager.doCheckUpdatesServer()
+while(!Jenkins.instance.updateCenter.isSiteDataReady()) {
+    sleep(500)
+}
+
+println "Installing pinned plugins: ${minimal_plugins.join(', ')}"
+
+// install minimal plugins with no dynamic loading (false)
+Jenkins.instance.pluginManager.install(minimal_plugins, false)
+
+null

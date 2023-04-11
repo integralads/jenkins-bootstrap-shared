@@ -1,6 +1,6 @@
 #!/bin/bash
 #Created by Sam Gleske (https://github.com/samrocketman)
-#Copyright (c) 2015-2020 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-jervis
+#Copyright (c) 2015-2022 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-jervis
 #Sun Jul 26 14:30:25 EDT 2015
 #Ubuntu 14.04.2 LTS
 #Linux 3.13.0-57-generic x86_64
@@ -35,7 +35,7 @@ function jenkins_console() (
     exit 1
   fi
 
-  "${SCRIPT_LIBRARY_PATH}"/jenkins-call-url -m POST --data-string script= "${script[@]}" "${jenkins}"
+  "${SCRIPT_LIBRARY_PATH}"/jenkins_call.sh -m POST --data-string script= "${script[@]}" "${jenkins}"
 )
 
 function curl_item_script() (

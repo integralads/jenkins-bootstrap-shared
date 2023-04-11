@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2015-2020 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-shared
+   Copyright (c) 2015-2022 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-shared
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl
   plugin without requiring that it be installed if an admin does not need to
   configure SSH agents.
 
-  This script will succeed both with and without the SSH slaves plugin
+  This script will succeed both with and without the SSH Build Agents plugin
   installed.
  */
 Class loadClass(String clazz) {
@@ -291,6 +291,44 @@ def setAWSCredentialsImpl(Map settings) {
                     settings['iam_mfa_serial_number'] ?: ''
                 ])
             )
+}
+
+/**
+  Supports GitHub App Credentials provided by GitHub Branch Source Plugin
+
+  Example:
+
+    [
+        credential_type: 'GitHubAppCredentials',
+        'credentials_id': 'some credentials id',
+        'description': 'A description of this credential',
+        appid: '12345',
+        apiuri: '',
+        owner: 'github organization',
+        key: 'private key downloaded from github re-encoded following docs'
+    ]
+
+  */
+def setGitHubAppCredentials(Map settings) {
+    String credentials_id = ((settings['credentials_id'])?:'').toString()
+    String description = ((settings['description'])?:'').toString()
+
+    def credential = newClassInstance('org.jenkinsci.plugins.github_branch_source.GitHubAppCredentials',
+                [
+                    resolveScope('global'),
+                    credentials_id,
+                    description,
+                    settings['appid'] ?: '',
+                    settings['key'] ?: '',
+                ])
+    if(settings['apiuri']) {
+        credential.apiUri = settings['apiuri']
+    }
+    if(settings['owner']) {
+        credential.owner = settings['owner']
+    }
+
+    addCredential(credentials_id, credential)
 }
 
 if(!binding.hasVariable('credentials')) {

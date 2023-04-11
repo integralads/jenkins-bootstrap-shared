@@ -1,5 +1,5 @@
 /*
-   Copyright 2015-2020 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-jervis
+   Copyright (c) 2015-2022 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-jervis
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ boolean isLibrariesEqual(List lib1, List lib2) {
 /* Example configuration
 pipeline_shared_libraries = [
     'Global Library Name': [
-        'defaultVersion': 'master-fu',
+        'defaultVersion': 'main',
         'implicit': true,
         'allowVersionOverride': false,
         'includeInChangesets': false,

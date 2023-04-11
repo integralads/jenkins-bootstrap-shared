@@ -1,20 +1,20 @@
-#https://github.com/anapsix/docker-alpine-java
-FROM nexus.303net.net:8443/anapsix/alpine-java:8_jdk
+ARG base=alpine
+FROM ${base}
 
 ADD build/distributions/*.tar /usr/
 
 ARG JENKINS_HOME=/var/lib/jenkins
 
 RUN set -ex; \
-adduser -u 100 -G nogroup -h ${JENKINS_HOME} -S jenkins && \
-apk add --no-cache git rsync openssh && \
-mkdir -p /var/cache/jenkins && \
-chown -R jenkins: /usr/lib/jenkins /var/cache/jenkins && \
+adduser -u 100 -G nogroup -h ${JENKINS_HOME} -S jenkins; \
+apk add --no-cache bash font-dejavu-sans-mono-nerd fontconfig git openjdk17-jdk openssh rsync; \
+mkdir -p /var/cache/jenkins ${JENKINS_HOME}; \
+chown -R jenkins: /usr/lib/jenkins /var/cache/jenkins ${JENKINS_HOME}; \
 ln -s /usr/lib/jenkins/distrib/daemon/run.sh /run.sh
 
 EXPOSE 8080/tcp
 
 USER jenkins
 WORKDIR ${JENKINS_HOME}
-ENV JAVA_HOME="/opt/jdk"
+ENV JAVA_HOME="/usr/lib/jvm/java-17-openjdk"
 CMD /run.sh

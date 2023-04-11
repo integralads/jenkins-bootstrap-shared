@@ -77,6 +77,11 @@ ospackage {
     preUninstall = file("${buildDir}/packaging-filtered/preUninstall.sh")
     postUninstall = file("${buildDir}/packaging-filtered/postUninstall.sh")
 
+    from("${buildDir}/packaging-filtered/daemon/jenkins.service") {
+        into '/lib/systemd/system'
+        fileMode 0644
+        fileType CONFIG
+    }
     from(configurations.getjenkins) {
         into "lib/${tokens['ARTIFACTNAME']}"
         rename '.*', "${tokens['ARTIFACTNAME']}.war"
@@ -86,7 +91,9 @@ ospackage {
     from(configurations.getplugins) {
         into "lib/${tokens['ARTIFACTNAME']}/plugins"
         include '*.hpi'
-        rename '(.*)-[.0-9]+.hpi$', '$1.jpi'
+        include '*.jpi'
+        rename '(.*)-[0-9]+[^-].*.hpi$', '$1.jpi'
+        rename '(.*)-[0-9]+[^-].*.jpi$', '$1.jpi'
         user tokens['USER']
         permissionGroup tokens['USER']
     }
@@ -239,7 +246,9 @@ task buildTar(type: Tar) {
     from(configurations.getplugins) {
         into "lib/${tokens['ARTIFACTNAME']}/plugins"
         include '*.hpi'
-        rename '(.*)-[.0-9]+.hpi$', '$1.jpi'
+        include '*.jpi'
+        rename '(.*)-[0-9]+[^-].*.hpi$', '$1.jpi'
+        rename '(.*)-[0-9]+[^-].*.jpi$', '$1.jpi'
     }
     from("${buildDir}/jenkins-scripts") {
         into "lib/${tokens['ARTIFACTNAME']}/scripts"
