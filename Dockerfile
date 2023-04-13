@@ -1,5 +1,6 @@
-#https://hub.docker.com/layers/library/openjdk/17-alpine/images/sha256-a996cdcc040704ec6badaf5fecf1e144c096e00231a29188596c784bcf858d05?context=explore
-FROM nexus.303net.net:8443/openjdk:17-alpine
+#https://hub.docker.com/layers/library/alpine/3.17.3/images/sha256-b6ca290b6b4cdcca5b3db3ffa338ee0285c11744b4a6abaa9627746ee3291d8d?context=explore
+ARG base=nexus.303net.net:8443/alpine:3.17.3
+FROM ${base}
 
 ADD build/distributions/*.tar /usr/
 
@@ -7,12 +8,14 @@ ARG JENKINS_HOME=/var/lib/jenkins
 
 RUN set -ex; \
 adduser -u 100 -G nogroup -h ${JENKINS_HOME} -S jenkins; \
-apk add --no-cache --allow-untrusted font-dejavu-sans-mono-nerd --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community; \
-apk add --no-cache bash fontconfig git openssh rsync; \
-apk add --no-cache --update python3 py3-pip; \
 mkdir -p /var/cache/jenkins ${JENKINS_HOME}; \
 chown -R jenkins: /usr/lib/jenkins /var/cache/jenkins ${JENKINS_HOME}; \
 ln -s /usr/lib/jenkins/distrib/daemon/run.sh /run.sh
+
+RUN set -ex; \
+apk add --no-cache --allow-untrusted font-dejavu-sans-mono-nerd --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community; \
+apk add --no-cache bash fontconfig git openssh rsync openjdk17-jdk; \
+apk add --no-cache --update python3
 
 EXPOSE 8080/tcp
 
