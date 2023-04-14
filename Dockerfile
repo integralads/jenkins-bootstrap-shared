@@ -13,8 +13,8 @@ chown -R jenkins: /usr/lib/jenkins /var/cache/jenkins ${JENKINS_HOME}; \
 ln -s /usr/lib/jenkins/distrib/daemon/run.sh /run.sh
 
 RUN set -ex; \
-apk add --no-cache --allow-untrusted font-dejavu-sans-mono-nerd --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community; \
-apk add --no-cache bash fontconfig git openssh rsync openjdk17-jdk; \
+# apk add --no-cache --allow-untrusted font-dejavu-sans-mono-nerd --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community; \
+apk add --no-cache bash fontconfig git openssh rsync openjdk17-jdk font-dejavu-sans-mono-nerd; \
 apk add --no-cache --update python3
 
 EXPOSE 8080/tcp
