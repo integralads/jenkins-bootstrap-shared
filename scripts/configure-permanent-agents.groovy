@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2015-2020 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-shared
+   Copyright (c) 2015-2022 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-shared
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ permanent_agents = [
   plugin without requiring that it be installed if an admin does not need to
   configure SSH agents.
 
-  This script will succeed both with and without the SSH slaves plugin
+  This script will succeed both with and without the SSH Build Agents plugin
   installed.
  */
 Class loadClass(String clazz) {

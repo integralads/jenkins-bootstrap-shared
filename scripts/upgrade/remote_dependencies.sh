@@ -7,12 +7,18 @@ if [ -z "${JENKINS_WEB}" -o -z "${SCRIPT_LIBRARY_PATH}" ]; then
   exit 1
 fi
 
-if ! type -P gawk; then
-  echo 'ERROR: GNU awk is required.' >&2
-  echo 'If on Mac, "brew install gawk".' >&2
-  echo "Otherwise, install GNU awk for the platform you're using" >&2
-  exit 1
-fi
+function gawk() {
+  if [ "$(uname)" = Linux ]; then
+    command awk "$@"
+  elif type -P gawk &> /dev/null; then
+    command gawk "$@"
+  else
+    echo 'ERROR: GNU awk is required.' >&2
+    echo '    If on Mac, "brew install gawk".' >&2
+    echo "    Otherwise, install GNU awk for the platform you're using" >&2
+    exit 1
+  fi
+}
 
 # GNU or BSD sed is required.  Homebrew on Mac installs GNU sed as gsed.
 # Try to detect gsed; otherwise, fall back to detecting OS for using sed.
@@ -39,7 +45,7 @@ CUSTOM_TMPFILE="${TMP_DIR}/custom"
 
 echo 'Upgrade build.gradle file.'
 export JENKINS_CALL_ARGS="-m POST ${JENKINS_WEB}/scriptText --data-string script= -d"
-"${SCRIPT_LIBRARY_PATH}"/jenkins-call-url "${SCRIPT_LIBRARY_PATH}"/upgrade/generateSedExpr.groovy > "${TMPFILE}"
+"${SCRIPT_LIBRARY_PATH}"/jenkins_call.sh "${SCRIPT_LIBRARY_PATH}"/upgrade/generateSedExpr.groovy > "${TMPFILE}"
 if [ -n "${USE_GRADLE_PROPERTIES:-}" ]; then
   VERSION_FILE=gradle.properties
 else
@@ -50,11 +56,12 @@ rm "${VERSION_FILE}.bak"
 
 #generate a new dependencies.gradle file
 echo 'Upgrade dependencies.gradle file.'
-if [ ! "$("${SCRIPT_LIBRARY_PATH}"/jenkins-call-url - <<< 'println Jenkins.instance.pluginManager.plugins.size()')" = '0' ]; then
+if [ ! "$("${SCRIPT_LIBRARY_PATH}"/jenkins_call.sh - <<< 'println Jenkins.instance.pluginManager.plugins.size()')" = '0' ]; then
   #create an index of installed plugins
-  "${SCRIPT_LIBRARY_PATH}"/jenkins-call-url "${SCRIPT_LIBRARY_PATH}"/upgrade/listShortNameVersion.groovy > "${TMPFILE}"
+  "${SCRIPT_LIBRARY_PATH}"/jenkins_call.sh "${SCRIPT_LIBRARY_PATH}"/upgrade/listShortNameVersion.groovy > "${TMPFILE}"
+  [ -f "${GAV_TMPFILE}" ] || "${SCRIPT_LIBRARY_PATH}"/upgrade/plugins_gav.sh > "${GAV_TMPFILE}"
 
-  JENKINS_WAR_VERSION=$("${SCRIPT_LIBRARY_PATH}"/jenkins-call-url - <<< 'println Jenkins.instance.version')
+  JENKINS_WAR_VERSION=$("${SCRIPT_LIBRARY_PATH}"/jenkins_call.sh - <<< 'println Jenkins.instance.version')
   cat > dependencies.gradle <<-EOF
 dependencies {
     //get Jenkins
@@ -74,17 +81,38 @@ EOF
   fi
   touch "${CUSTOM_TMPFILE}"
 
+  if [ -f pinned-plugins.txt ]; then
+    #minimally pinned plugins
+    cat >> dependencies.gradle <<-EOF
+
+    //Plugins from pinned-plugins.txt
+EOF
+    while read x; do
+      if grep -F "${x%:*}" "${CUSTOM_TMPFILE}" > /dev/null; then
+        #skip custom plugins because they're already included in dependencies.gradle
+        continue
+      fi
+      if ! grep "^${x%:*}\$" pinned-plugins.txt > /dev/null; then
+        #skip if not a pinned plugin
+        continue
+      fi
+      GROUP=$(gawk "BEGIN {FS=\":\"};\$2 == \"${x%:*}\" { print \$1 }" "${GAV_TMPFILE}")
+      echo "    getplugins '${GROUP}:${x}@hpi'"
+      unset GROUP
+    done < "${TMPFILE}" | LC_COLLATE=C sort >> dependencies.gradle
+    cat pinned-plugins.txt >> "${CUSTOM_TMPFILE}"
+  fi
+
+  # list remaining dependencies
   cat >> dependencies.gradle <<-EOF
 
-    //get plugins
+    //additional plugins (usually transitive dependencies)
 EOF
-
   while read x; do
     if grep -F "${x%:*}" "${CUSTOM_TMPFILE}" > /dev/null; then
-      #skip custom plugins because they're already included in dependencies.gradle
+      #skip plugins because they're already included in dependencies.gradle
       continue
     fi
-    [ -f "${GAV_TMPFILE}" ] || "${SCRIPT_LIBRARY_PATH}"/upgrade/plugins_gav.sh > "${GAV_TMPFILE}"
     GROUP=$(gawk "BEGIN {FS=\":\"};\$2 == \"${x%:*}\" { print \$1 }" "${GAV_TMPFILE}")
     echo "    getplugins '${GROUP}:${x}@hpi'"
     unset GROUP

@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2015-2022 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-slack
+   Copyright (c) 2015-2022 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-shared
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,20 +14,18 @@
    limitations under the License.
    */
 /*
-   Initiate an asynchronous upgrade of Jenkins core and plugins.  This script
-   will only upgrade if an upgrade is necessary.  This script will not attempt
-   to upgrade plugins which have already been upgraded.
+   Will upgrade only Jenkins core assuming it has no plugins installed.  This
+   script supports the plugin refresh method.  See plugin_refresh.md
+   documentation.
  */
 import hudson.model.UpdateCenter
+import jenkins.model.Jenkins
 
 //Check for the latest update center updates from jenkins.io
 Jenkins.instance.pluginManager.doCheckUpdatesServer()
 
 //get the current update center
 UpdateCenter center = Jenkins.instance.updateCenter
-while(!center.isSiteDataReady()) {
-    sleep(500)
-}
 
 //upgrade Jenkins core
 //fake emulate a stapler request
@@ -39,8 +37,4 @@ if(center.getCoreSource().data && center.getCoreSource().data.hasCoreUpdates() &
     println "Upgrading Jenkins Core."
     center.doUpgrade(req)
 }
-
-//schedule an upgrade of all plugins
-print "Upgrading Plugins: "
-println center.updates.findAll { center.getJob(it) == null }.each { it.deploy(false) }*.name
 null
