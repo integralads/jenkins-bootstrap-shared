@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2015-2022 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-jervis
+   Copyright (c) 2015-2023 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-jervis
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import hudson.model.FreeStyleProject
 import hudson.model.Item
 import hudson.plugins.groovy.SystemGroovy
 import jenkins.model.Jenkins
+import org.jenkinsci.plugins.scriptsecurity.scripts.languages.GroovyLanguage
 import org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildDescriptor
 
 script_approval = Jenkins.get().getExtensionList('org.jenkinsci.plugins.scriptsecurity.scripts.ScriptApproval')[0]
@@ -31,7 +32,7 @@ script_approval = Jenkins.get().getExtensionList('org.jenkinsci.plugins.scriptse
 approvalsNotUpdated = true
 
 void approveGroovyScript(String fullName, String script, String type = '') {
-    String hash = script_approval.hash(script, 'groovy')
+    String hash = script_approval.DEFAULT_HASHER.hash(script, GroovyLanguage.get().getName())
     if(!(hash in script_approval.approvedScriptHashes)) {
         println "${fullName} ${(type)? type + ' ' : ''}groovy script approved."
         script_approval.approveScript(hash)

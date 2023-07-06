@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2015-2022 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-shared
+   Copyright (c) 2015-2023 Sam Gleske - https://github.com/samrocketman/jenkins-bootstrap-shared
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -73,6 +73,7 @@ import hudson.security.GlobalMatrixAuthorizationStrategy
 import hudson.security.Permission
 import hudson.security.ProjectMatrixAuthorizationStrategy
 import jenkins.model.Jenkins
+import org.jenkinsci.plugins.matrixauth.PermissionEntry
 
 /**
  * FUNCTIONS AND SETUP CODE
@@ -162,11 +163,15 @@ println "Configuring authorization strategy ${authz_strategy_config['strategy']}
 
 def authz_strategy = Class.forName("hudson.security.${authz_strategy_config['strategy']}").newInstance()
 
+List jenkins_builtin_groups = [ 'anonymous', 'authenticated' ]
+
 // build the permissions in the strategy
 authz_strategy_config['user_permissions'].each { user, permissions ->
     permissions.each { p ->
-        authz_strategy.add(permissionIds[p], user)
-        println "    For user ${user} grant permission ${p}."
+        Boolean isGroup = user.contains('*') || (user in jenkins_builtin_groups) || user.startsWith('group:')
+        String user_type = isGroup ? "group" : "user"
+        authz_strategy.add(permissionIds[p], PermissionEntry."${user_type}"(user -~ /^group:/))
+        println "For ${user_type} ${user} grant permission ${p}."
     }
 }
 

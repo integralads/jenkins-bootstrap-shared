@@ -13,28 +13,22 @@
    See the License for the specific language governing permissions and
    limitations under the License.
    */
-/*
-   Install plugins through the update center.
- */
-if(!binding.hasVariable('plugins')) {
-    throw new Exception('plugins is missing from the binding.')
+/**
+  Disable warning when controller has executors.  Controllers with executors
+  are safe when the job restrictions plugin is configured.
+
+  https://plugins.jenkins.io/job-restrictions/
+  */
+import jenkins.model.Jenkins
+import jenkins.diagnostics.ControllerExecutorsAgents
+import hudson.model.AdministrativeMonitor
+
+def monitor = Jenkins.instance.getExtensionList(AdministrativeMonitor).get(ControllerExecutorsAgents)
+
+if(!monitor.isEnabled()) {
+    println('Nothing changed.  Executor on Controllers Warning already disabled')
+    return
 }
 
-if(!(plugins instanceof String)) {
-    throw new Exception('plugins must defined as a String.')
-}
-
-List minimal_plugins = plugins.tokenize('\n')*.trim().sort().unique()
-
-
-Jenkins.instance.pluginManager.doCheckUpdatesServer()
-while(!Jenkins.instance.updateCenter.isSiteDataReady()) {
-    sleep(500)
-}
-
-println "Installing pinned plugins: ${minimal_plugins.join(', ')}"
-
-// install minimal plugins with no dynamic loading (false)
-Jenkins.instance.pluginManager.install(minimal_plugins, false)
-
-null
+monitor.disable(true)
+println('Disabled warning for having executors on the controller.')
