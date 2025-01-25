@@ -15,16 +15,20 @@ function cleanup_on() {
   if [ "$1" = '0' ]; then
     echo "Jenkins is ready.  Visit ${JENKINS_WEB}/"
     echo "User: ${JENKINS_USER}"
-    echo "Password: ${JENKINS_PASSWORD}"
+    if [ x"${REMOTE_JENKINS:-}" = x ]; then
+      echo "Password: ${JENKINS_PASSWORD}"
+    fi
   fi
 }
 trap 'cleanup_on $?' EXIT
 
+#allow users to import when using no upgrade
+if [ -n "${NO_UPGRADE}" ]; then
+  export FORCE_UPGRADE=1
+fi
+
 source env.sh
 source "${SCRIPT_LIBRARY_PATH}"/upgrade/setup_environment.sh
-
-#allow users to import when using no upgrade
-[ -n "${NO_UPGRADE}" ] && FORCE_UPGRADE=1
 
 #wait for jenkins to become available
 "${SCRIPT_LIBRARY_PATH}"/provision_jenkins.sh url-ready "${JENKINS_WEB}/jnlpJars/jenkins-cli.jar"

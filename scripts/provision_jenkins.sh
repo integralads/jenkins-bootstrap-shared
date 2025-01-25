@@ -51,6 +51,10 @@ JENKINS_START="${JENKINS_START:-java -Xms4g -Xmx4g -jar jenkins.war}"
 JENKINS_WEB="${JENKINS_WEB%/}"
 CURL="${CURL:-curl}"
 
+if [ ! x"${INSECURE_TLS:-}" = x ]; then
+  CURL="${CURL} -k"
+fi
+
 #Get JAVA_HOME for java on Mac OS X
 #will only run if OS X is detected
 if uname -rms | grep Darwin &> /dev/null; then
@@ -216,7 +220,12 @@ function is_auth_enabled() {
 function url_ready() {
   url="$1"
   echo -n "Waiting for ${url} to become available."
-  while [ ! "200" = "$(curl -sLiI -w "%{http_code}\\n" -o /dev/null ${url})" ]; do
+  local CURL_OPTS=( -sLiI )
+  CURL_OPTS=( -sLiI )
+  if [ ! x"${INSECURE_TLS:-}" = x ]; then
+    CURL_OPTS+=( -k )
+  fi
+  while [ ! "200" = "$(curl "${CURL_OPTS[@]}" -w "%{http_code}\\n" -o /dev/null ${url})" ]; do
     echo -n '.'
     sleep 1
   done
@@ -234,7 +243,12 @@ function download_file() {
   fi
   url_ready "${url}"
   if [ ! -e "${file}" ]; then
-    curl -SLo "${file}" "${url}"
+    local CURL_OPTS
+    CURL_OPTS=( -sSfL )
+    if [ ! x"${INSECURE_TLS:-}" = x ]; then
+      CURL_OPTS+=( -k )
+    fi
+    curl "${CURL_OPTS[@]}" -o "${file}" "${url}"
   fi
 }
 
@@ -466,6 +480,30 @@ COMMANDS
 
   url-ready URL              Wait for a URL to become available.  This command
                              is useful for automation.
+
+ENVIRONMENT VARIABLES
+  jenkins_url
+    URL for latest jenkins.war.
+    Default: http://mirrors.jenkins-ci.org/war/latest/jenkins.war
+  JENKINS_HOME
+    Location of Jenkins home directory when bootstrapping locally.
+    Default: ../my_jenkins_home
+  JENKINS_WEB
+    Location of Jenkins web URL.
+    Default: http://localhost:8080/
+  JENKINS_CLI
+    Jenkins CLI command arguments.
+    Default: java -jar ./jenkins-cli.jar -s ${JENKINS_WEB} -noKeyAuth
+  JENKINS_START
+    Jenkins startup command when bootstrapping locally.
+    Default: java -Xms4g -Xmx4g -jar jenkins.war
+  CURL
+    Curl command used by scripts.
+    Default: curl
+  INSECURE_TLS
+    When non-zero, checking if Jenkins is alive does not verify TLS server
+    certificates.  Adds -k option to $CURL and modifies other curl commands
+    with -k option.
 
 EXAMPLE USAGE
   Automatically provision and start Jenkins on your laptop.

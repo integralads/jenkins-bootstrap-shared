@@ -5,5 +5,5 @@ curl --progress-bar -L "${JENKINS_UPDATE_CENTER:-http://updates.jenkins-ci.org/u
 import sys,json
 j=json.load(sys.stdin)
 for key in j["plugins"]:
-    print j["plugins"][key]["gav"]
+    print(j["plugins"][key]["gav"])
 '

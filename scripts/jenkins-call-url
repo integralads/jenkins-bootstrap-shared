@@ -54,6 +54,7 @@ environment variables:
   JENKINS_HEADERS_FILE  Path to file to persist HTTP headers.  See also --save-headers or --load-headers.
   JENKINS_CALL_ARGS     Additional space-separated arguments which would normally be called on command line.  If spaces are required for an argument then the separator can be the pipe symbol '|'.
   JENKINS_SOCKS_PROXY   Define a SOCKS5 proxy to proxy traffic.  Format is host:port where host is hostname and port is TCP port of the proxy.
+  INSECURE_TLS          Do not validate TLS CA certificates when connecting to Jenkins.
 
 
 exit status:
@@ -265,6 +266,9 @@ def getUrl(url, headers, data=None, method='GET'):
                 context.load_verify_locations(cafile=args.pinned_cert)
             else:
                 context.load_default_certs()
+            if os.getenv('INSECURE_TLS') is not None:
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
             req = Request(url, data=data, headers=headers)
             if method != 'GET':
                 req.get_method = lambda: method

@@ -14,7 +14,7 @@
 
 #protect user from accidentally upgrading a remote Jenkins
 #this should always be localhost
-if [ ! "${JENKINS_WEB}" = 'http://localhost:8080' ]; then
+if [ -z "${NO_UPGRADE:-}" ] &&  [ ! "${JENKINS_WEB}" = 'http://localhost:8080' ]; then
   echo 'ERROR: JENKINS_WEB is not equal to localhost' >&2
   echo "JENKINS_WEB = ${JENKINS_WEB}" >&2
   exit 1

@@ -111,7 +111,7 @@ instance.
    export JENKINS_WEB='https://jenkins.example.com/'
    export JENKINS_USER="<your username>"
    export JENKINS_PASSWORD
-   read -sp 'Password: ' JENKINS_PASSWORD
+   read -ersp 'Password: ' JENKINS_PASSWORD
    ```
 
 3. Import your remote Jenkins version and plugin versions into this repository.
