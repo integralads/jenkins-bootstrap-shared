@@ -319,7 +319,7 @@ def setGitHubAppCredentials(Map settings) {
                     credentials_id,
                     description,
                     settings['appid'] ?: '',
-                    settings['key'] ?: '',
+                    Secret.fromString(settings['key'] ?: ''),
                 ])
     if(settings['apiuri']) {
         credential.apiUri = settings['apiuri']
